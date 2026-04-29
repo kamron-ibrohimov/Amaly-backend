@@ -1,0 +1,262 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../../generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid())
+
+  email     String   @unique
+  password  String
+
+  username  String   @unique
+  firstName String?  @default("")
+  lastName  String?  @default("")
+  avatar    String?
+  bio       String?
+
+  isPublic  Boolean  @default(true)
+  timezone  String   @default("Asia/Tashkent")
+  language  Language @default(UZ)
+
+  createdChallenges Challenge[] @relation("ChallengeCreator")
+
+  role      Role     @default(USER)
+  isActive  Boolean  @default(true)
+  isVerified Boolean @default(false)
+
+  refreshToken         String?
+  verificationToken    String?
+  resetPasswordToken   String?
+  resetPasswordExpires DateTime?
+
+  otpCode        String?
+  otpExpires     DateTime?
+  otpVerified    Boolean   @default(false)
+
+  lastLoginAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  habits        Habit[]
+  followers     Follow[]       @relation("following")
+  following     Follow[]       @relation("follower")
+  comments      Comment[]
+  reactions     Reaction[]
+  notifications Notification[]
+  deviceTokens  DeviceToken[]
+  challenges    ChallengeUser[]
+}
+
+model Habit {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  icon        String?
+  color       String?
+  isPublic    Boolean   @default(false)
+  frequency   Frequency @default(DAILY)
+  targetDays  Int       @default(7)
+
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id])
+
+  logs        HabitLog[]
+  comments    Comment[]
+  reactions   Reaction[]
+  challenges  ChallengeHabit[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model HabitLog {
+  id        String   @id @default(uuid())
+  date      DateTime @db.Date
+  completed Boolean  @default(false)
+  note      String?
+
+  habitId   String
+  habit     Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([habitId, date])
+}
+
+model Category {
+  id     String  @id @default(uuid())
+  name   String  @unique
+  icon   String?
+  color  String?
+
+  habits Habit[]
+}
+
+enum FollowStatus {
+  PENDING
+  ACCEPTED
+}
+
+model Follow {
+  id          String       @id @default(uuid())
+  followerId  String
+  followingId String
+  status      FollowStatus @default(PENDING)  // ← yangi
+
+  follower    User     @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+}
+
+model Comment {
+  id      String  @id @default(uuid())
+  text    String
+
+  userId  String
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  habitId String
+  habit   Habit   @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Reaction {
+  id      String       @id @default(uuid())
+  emoji   ReactionType
+
+  userId  String
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  habitId String
+  habit   Habit        @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime   @default(now())
+
+  @@unique([userId, habitId])
+}
+
+model Notification {
+  id      String           @id @default(uuid())
+  type    NotificationType
+  title   String
+  body    String
+  isRead  Boolean          @default(false)
+  data    Json?           
+
+  userId  String
+  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime       @default(now())
+}
+
+model DeviceToken {
+  id       String     @id @default(uuid())
+  token    String     @unique
+  platform Platform
+
+  userId   String
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime  @default(now())
+}
+
+model Challenge {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+  isPublic    Boolean   @default(true)
+
+  creatorId   String                    // ← qo'sh
+  creator     User      @relation("ChallengeCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+
+  habits      ChallengeHabit[]
+  users       ChallengeUser[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model ChallengeHabit {
+  id          String    @id @default(uuid())
+  challengeId String
+  habitId     String
+
+  challenge   Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  habit       Habit     @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  @@unique([challengeId, habitId])
+}
+
+model ChallengeUser {
+  id          String          @id @default(uuid())
+  challengeId String
+  userId      String
+  status      ChallengeStatus @default(PENDING)
+
+  challenge   Challenge       @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  joinedAt    DateTime        @default(now())
+
+  @@unique([challengeId, userId])
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum Language {
+  UZ
+  RU
+  EN
+}
+
+enum Frequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+enum ReactionType {
+  FIRE       
+  HEART      
+  CLAP       
+  HUNDRED    
+  ROCKET     
+}
+
+enum NotificationType {
+  HABIT_REMINDER
+  FOLLOW
+  COMMENT
+  REACTION
+  CHALLENGE_INVITE
+  CHALLENGE_COMPLETE
+  STREAK_MILESTONE
+}
+
+enum Platform {
+  IOS
+  ANDROID
+}
+
+enum ChallengeStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  LEFT
+}

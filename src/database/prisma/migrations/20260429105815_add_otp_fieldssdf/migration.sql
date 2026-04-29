@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "User" ALTER COLUMN "firstName" DROP NOT NULL,
+ALTER COLUMN "firstName" SET DEFAULT '',
+ALTER COLUMN "lastName" SET DEFAULT '';
