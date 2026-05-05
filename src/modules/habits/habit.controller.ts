@@ -9,7 +9,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../../core/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../core/guards/jwt-auth.guard';
 import { CreateHabitDto } from './dto/create-habit.dto';
@@ -17,6 +17,7 @@ import { HabitQueryDto } from './dto/habit-query.dto';
 import { LogHabitDto } from './dto/log-habit.dto';
 import { UpdateHabitDto } from './dto/update-habit.dto';
 import { HabitsService } from './habit.service';
+import { PublicHabitQueryDto } from './dto/public-habit-query.dto';
 
 @ApiTags('Habits')
 @ApiBearerAuth()
@@ -97,5 +98,16 @@ export class HabitsController {
     @Param('id') habitId: string,
   ) {
     return this.habitsService.getStreak(userId, habitId);
+  }
+
+  @Get('user/:userId/public')
+  @ApiOperation({ summary: 'Boshqa foydalanuvchining public habitlarini olish' })
+  @ApiParam({ name: 'userId', description: 'Target foydalanuvchi ID si' })
+  getPublicHabits(
+    @CurrentUser('sub') currentUserId: string,
+    @Param('userId') targetUserId: string,
+    @Query() query: PublicHabitQueryDto,
+  ) {
+    return this.habitsService.getPublicHabits(currentUserId, targetUserId, query);
   }
 }

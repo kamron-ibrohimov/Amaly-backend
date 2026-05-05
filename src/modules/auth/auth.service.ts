@@ -31,7 +31,6 @@ export class AuthService {
   ) {}
 
   async register(dto: RegisterDto): Promise<{ message: string }> {
-    // 1. Email band emasligini tekshir
     const existingEmail = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -39,13 +38,12 @@ export class AuthService {
       throw new ConflictException('Bu email allaqachon ro\'yxatdan o\'tgan');
     }
 
-    // 2. Username band emasligini tekshir
-    // const existingUsername = await this.prisma.user.findUnique({
-    //   where: { username: dto.username },
-    // });
-    // if (existingUsername) {
-    //   throw new ConflictException('Bu username band');
-    // }
+    const existingUsername = await this.prisma.user.findUnique({
+      where: { username: dto.username },
+    });
+    if (existingUsername) {
+      throw new ConflictException('Bu username band');
+    }
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
@@ -116,7 +114,7 @@ export class AuthService {
   }
 
   async login(dto: LoginDto): Promise<AuthResponseDto> {
-    // 1. Userni topish
+
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });

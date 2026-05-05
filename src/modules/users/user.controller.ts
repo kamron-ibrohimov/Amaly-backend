@@ -25,8 +25,8 @@ export class UsersController {
   @Get()
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Barcha foydalanuvchilarni olish' })
-  findAll(@Query() query: UserQueryDto) {
-    return this.usersService.findAll(query);
+  findAll(@Query() query: UserQueryDto, @CurrentUser('sub') userId: string) {
+    return this.usersService.findAll(query, userId);
   }
 
   @Get('me')

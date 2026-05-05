@@ -14,7 +14,7 @@ export class AuthResponseDto {
     id: string;
     email: string;
     username: string;
-    firstName?: string | null;   // optional + null
+    firstName?: string | null;   
     lastName?: string | undefined;
     avatar?: string | undefined;
     role: string;
@@ -35,7 +35,7 @@ export class MeResponseDto {
   username!: string;
 
   @ApiPropertyOptional()
-  firstName?: string | null;    // optional + null
+  firstName?: string | null;   
 
   @ApiPropertyOptional()
   lastName?: string | null;

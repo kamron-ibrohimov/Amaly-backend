@@ -19,62 +19,62 @@ export class UsersService {
   // ─────────────────────────────────────────
   // GET ALL USERS
   // ─────────────────────────────────────────
-  async findAll(query: UserQueryDto): Promise<PaginatedResult<PublicUserResponseDto>> {
-  const {
-    page = 1,
-    limit = 10,
-    search,
-    role,
-    language,
-    isPublic,
-    isVerified,
-    isActive = true,
-    sortBy = 'createdAt',
-    sortOrder = 'desc',
-  } = query;
+  async findAll(query: UserQueryDto, currentUserId: string): Promise<PaginatedResult<PublicUserResponseDto>> {
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      role,
+      language,
+      isPublic,
+      isVerified,
+      isActive = true,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = query;
 
-  const skip = (page - 1) * limit;
+    const skip = (page - 1) * limit;
 
-  const where = {
-    ...(search && {
-      OR: [
-        { username: { contains: search, mode: 'insensitive' as const } },
-        { firstName: { contains: search, mode: 'insensitive' as const } },
-        { lastName: { contains: search, mode: 'insensitive' as const } },
-      ],
-    }),
-    ...(role && { role }),
-    ...(language && { language }),
-    ...(isPublic !== undefined && { isPublic }),
-    ...(isVerified !== undefined && { isVerified }),
-    isActive,
-  };
+    const where = {
+      ...(search && {
+        OR: [
+          { username: { contains: search, mode: 'insensitive' as const } },
+          { firstName: { contains: search, mode: 'insensitive' as const } },
+          { lastName: { contains: search, mode: 'insensitive' as const } },
+        ],
+      }),
+      ...(role && { role }),
+      ...(language && { language }),
+      ...(isPublic !== undefined && { isPublic }),
+      ...(isVerified !== undefined && { isVerified }),
+      isActive,
+    };
 
-  const [users, total] = await Promise.all([
-    this.prisma.user.findMany({
-      where,
-      skip,
-      take: limit,
-      orderBy: { [sortBy]: sortOrder },
-      select: this.publicSelect(),
-    }),
-    this.prisma.user.count({ where }),
-  ]);
+    const [users, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { [sortBy]: sortOrder },
+        select: this.publicSelect(currentUserId),
+      }),
+      this.prisma.user.count({ where }),
+    ]);
 
-  const totalPages = Math.ceil(total / limit);
+    const totalPages = Math.ceil(total / limit);
 
-  return {
-    data: users as unknown as PublicUserResponseDto[],
-    meta: {
-      total,
-      page,
-      limit,
-      totalPages,
-      hasNextPage: page < totalPages,
-      hasPrevPage: page > 1,
-    },
-  };
-}
+    return {
+      data: users as unknown as PublicUserResponseDto[],
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+    };
+  }
 
   // ─────────────────────────────────────────
   // GET USER BY USERNAME
@@ -188,7 +188,7 @@ export class UsersService {
   // ─────────────────────────────────────────
   // PRIVATE HELPERS
   // ─────────────────────────────────────────
-  private publicSelect() {
+  private publicSelect(currentUserId?: string) {
     return {
       id: true,
       username: true,
@@ -200,6 +200,12 @@ export class UsersService {
       role: true,
       isActive: true,
       createdAt: true,
+      ...(currentUserId && {
+        followers: {
+          where: { followerId: currentUserId },
+          select: { status: true },
+        },
+      }),
     };
   }
 

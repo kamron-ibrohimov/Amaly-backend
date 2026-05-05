@@ -12,9 +12,6 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 export class CategoriesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // ─────────────────────────────────────────
-  // CREATE
-  // ─────────────────────────────────────────
   async create(dto: CreateCategoryDto): Promise<CategoryResponseDto> {
     const existing = await this.prisma.category.findUnique({
       where: { name: dto.name },
@@ -27,18 +24,12 @@ export class CategoriesService {
     return this.prisma.category.create({ data: dto });
   }
 
-  // ─────────────────────────────────────────
-  // GET ALL
-  // ─────────────────────────────────────────
   async findAll(): Promise<CategoryResponseDto[]> {
     return this.prisma.category.findMany({
       orderBy: { name: 'asc' },
     });
   }
 
-  // ─────────────────────────────────────────
-  // GET ONE
-  // ─────────────────────────────────────────
   async findOne(id: string): Promise<CategoryResponseDto> {
     const category = await this.prisma.category.findUnique({
       where: { id },
@@ -51,9 +42,6 @@ export class CategoriesService {
     return category;
   }
 
-  // ─────────────────────────────────────────
-  // UPDATE
-  // ─────────────────────────────────────────
   async update(id: string, dto: UpdateCategoryDto): Promise<CategoryResponseDto> {
     await this.findOne(id);
 
@@ -73,9 +61,6 @@ export class CategoriesService {
     });
   }
 
-  // ─────────────────────────────────────────
-  // DELETE
-  // ─────────────────────────────────────────
   async remove(id: string): Promise<{ message: string }> {
     await this.findOne(id);
 
