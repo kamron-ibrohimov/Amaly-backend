@@ -1,4 +1,3 @@
-// src/modules/auth/strategies/jwt-refresh.strategy.ts
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';

@@ -8,6 +8,6 @@ export class ChangePasswordDto {
 
   @ApiProperty({ example: 'NewPassword123' })
   @IsString()
-  @MinLength(8)
+  @MinLength(4)
   newPassword!: string;
 }

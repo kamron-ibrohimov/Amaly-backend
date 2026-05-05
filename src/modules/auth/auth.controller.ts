@@ -1,4 +1,3 @@
-// src/modules/auth/auth.controller.ts
 import {
   Body,
   Controller,
@@ -17,7 +16,6 @@ import {
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { AuthResponseDto, MeResponseDto, TokensDto } from './dto/auth-response.dto';
 import { JwtAuthGuard } from '../../core/guards/jwt-auth.guard';
 import { JwtRefreshGuard } from '../../core/guards/jwt-refresh.guard';
@@ -32,7 +30,6 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  // ── POST /auth/register ──────────────────────────────
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Ro\'yxatdan o\'tish' })
@@ -42,7 +39,6 @@ export class AuthController {
     return this.authService.register(dto);
   }
 
-  // ── POST /auth/login ─────────────────────────────────
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Kirish' })
@@ -52,7 +48,6 @@ export class AuthController {
     return this.authService.login(dto);
   }
 
-  // ── POST /auth/refresh ───────────────────────────────
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtRefreshGuard)
@@ -64,7 +59,6 @@ export class AuthController {
     return this.authService.refreshTokens(user.sub, user.refreshToken);
   }
 
-  // ── POST /auth/logout ────────────────────────────────
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
@@ -76,7 +70,6 @@ export class AuthController {
     return { message: 'Muvaffaqiyatli chiqildi' };
   }
 
-  // POST /auth/verify-otp
   @Post('verify-otp')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'OTP tasdiqlash' })
@@ -84,7 +77,6 @@ export class AuthController {
     return this.authService.verifyOtp(dto);
   }
 
-  // POST /auth/resend-otp
   @Post('resend-otp')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'OTP qayta yuborish' })
@@ -92,7 +84,6 @@ export class AuthController {
     return this.authService.resendOtp(dto);
   }
 
-  // POST /auth/forgot-password
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Parolni tiklash uchun OTP yuborish' })
@@ -100,7 +91,6 @@ export class AuthController {
     return this.authService.forgotPassword(dto);
   }
 
-  // POST /auth/reset-password
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Yangi parol o\'rnatish' })
@@ -108,7 +98,6 @@ export class AuthController {
     return this.authService.resetPassword(dto);
   }
 
-  // ── GET /auth/me ─────────────────────────────────────
   @Get('me')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)

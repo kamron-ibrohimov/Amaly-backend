@@ -18,9 +18,6 @@ export class ChallengesService {
     private readonly notifications: NotificationsService,
   ) {}
 
-  // ─────────────────────────────────────────
-  // CREATE
-  // ─────────────────────────────────────────
   async create(userId: string, dto: CreateChallengeDto) {
     const startDate = new Date(dto.startDate);
     const endDate = dto.endDate ? new Date(dto.endDate) : null;
@@ -66,9 +63,6 @@ export class ChallengesService {
     return challenge;
   }
 
-  // ─────────────────────────────────────────
-  // GET ALL
-  // ─────────────────────────────────────────
   async findAll(userId: string, query: ChallengeQueryDto) {
     const { page = 1, limit = 20, onlyMine } = query;
     const skip = (page - 1) * limit;
@@ -108,9 +102,6 @@ export class ChallengesService {
     };
   }
 
-  // ─────────────────────────────────────────
-  // GET ONE
-  // ─────────────────────────────────────────
   async findOne(userId: string, challengeId: string) {
     const challenge = await this.prisma.challenge.findUnique({
       where: { id: challengeId },
@@ -149,9 +140,6 @@ export class ChallengesService {
     return challenge;
   }
 
-  // ─────────────────────────────────────────
-  // UPDATE (faqat creator)
-  // ─────────────────────────────────────────
   async update(userId: string, challengeId: string, dto: UpdateChallengeDto) {
   await this.checkCreator(userId, challengeId);
 
@@ -182,9 +170,6 @@ export class ChallengesService {
   return updated;
 }
 
-  // ─────────────────────────────────────────
-  // DELETE (faqat creator)
-  // ─────────────────────────────────────────
   async remove(userId: string, challengeId: string) {
     await this.checkCreator(userId, challengeId);
 
@@ -193,9 +178,6 @@ export class ChallengesService {
     return { message: 'Challenge o\'chirildi' };
   }
 
-  // ─────────────────────────────────────────
-  // INVITE USER (faqat creator, faqat following)
-  // ─────────────────────────────────────────
   async inviteUser(creatorId: string, challengeId: string, dto: InviteUserDto) {
     await this.checkCreator(creatorId, challengeId);
 
@@ -235,7 +217,6 @@ export class ChallengesService {
       },
     });
 
-    // Notification yuborish
     await this.notifications.createNotification({
       userId: dto.userId,
       type: 'CHALLENGE_INVITE',
@@ -247,9 +228,6 @@ export class ChallengesService {
     return { message: 'Taklif yuborildi' };
   }
 
-  // ─────────────────────────────────────────
-  // ACCEPT INVITE
-  // ─────────────────────────────────────────
   async acceptInvite(userId: string, challengeId: string) {
     const member = await this.prisma.challengeUser.findUnique({
       where: { challengeId_userId: { challengeId, userId } },
@@ -271,9 +249,6 @@ export class ChallengesService {
     return updated;
   }
 
-  // ─────────────────────────────────────────
-  // REJECT INVITE / LEAVE
-  // ─────────────────────────────────────────
   async leaveOrReject(userId: string, challengeId: string) {
     const member = await this.prisma.challengeUser.findUnique({
       where: { challengeId_userId: { challengeId, userId } },
@@ -303,9 +278,6 @@ export class ChallengesService {
     return { message: member.status === 'PENDING' ? 'Taklif rad etildi' : 'Challengedan chiqildi' };
   }
 
-  // ─────────────────────────────────────────
-  // ADD HABIT TO CHALLENGE (faqat creator)
-  // ─────────────────────────────────────────
   async addHabit(userId: string, challengeId: string, habitId: string) {
     await this.checkCreator(userId, challengeId);
 
@@ -342,9 +314,6 @@ export class ChallengesService {
     return challengeHabit;
   }
 
-  // ─────────────────────────────────────────
-  // REMOVE HABIT FROM CHALLENGE (faqat creator)
-  // ─────────────────────────────────────────
   async removeHabit(userId: string, challengeId: string, habitId: string) {
     await this.checkCreator(userId, challengeId);
 
@@ -363,9 +332,6 @@ export class ChallengesService {
     return { message: 'Habit challengedan olib tashlandi' };
   }
 
-  // ─────────────────────────────────────────
-  // GET MEMBERS
-  // ─────────────────────────────────────────
   async getMembers(userId: string, challengeId: string) {
     const challenge = await this.prisma.challenge.findUnique({
       where: { id: challengeId },
@@ -395,9 +361,6 @@ export class ChallengesService {
     return members;
   }
 
-  // ─────────────────────────────────────────
-  // PRIVATE HELPER
-  // ─────────────────────────────────────────
   private async checkCreator(userId: string, challengeId: string) {
     const challenge = await this.prisma.challenge.findUnique({
       where: { id: challengeId },

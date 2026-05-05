@@ -10,10 +10,10 @@ export class ResetPasswordDto {
   @ApiProperty({ example: '1234' })
   @IsString()
   @IsNotEmpty()
-  @Length(6, 6)
+  @Length(4, 4)
   otp!: string;
 
-  @ApiProperty({ example: 'NewSecret123!' })
+  @ApiProperty({ example: '123456' })
   @IsString()
   @IsNotEmpty()
   @MinLength(4)

@@ -10,6 +10,7 @@ import { HabitQueryDto } from './dto/habit-query.dto';
 import { HabitResponseDto } from './dto/habit-response.dto';
 import { LogHabitDto } from './dto/log-habit.dto';
 import { UpdateHabitDto } from './dto/update-habit.dto';
+import { PublicHabitQueryDto } from './dto/public-habit-query.dto';
 
 @Injectable()
 export class HabitsService {
@@ -245,4 +246,62 @@ export class HabitsService {
       throw new ForbiddenException('Bu habitga ruxsat yo\'q');
     }
   }
+
+  // ─────────────────────────────────────────
+// GET USER PUBLIC HABITS (boshqa foydalanuvchi)
+// ─────────────────────────────────────────
+async getPublicHabits(
+  currentUserId: string,
+  targetUserId: string,
+  query: PublicHabitQueryDto,
+) {
+  // Target user mavjudmi?
+  const targetUser = await this.prisma.user.findUnique({
+    where: { id: targetUserId },
+    select: { id: true, isPublic: true },
+  });
+
+  if (!targetUser) throw new NotFoundException('Foydalanuvchi topilmadi');
+
+  // Private akkaunt bo'lsa — faqat ACCEPTED follower ko'ra oladi
+  if (!targetUser.isPublic) {
+    const follow = await this.prisma.follow.findUnique({
+      where: {
+        followerId_followingId: {
+          followerId: currentUserId,
+          followingId: targetUserId,
+        },
+      },
+    });
+
+    if (!follow || follow.status !== 'ACCEPTED') {
+      throw new ForbiddenException('Bu foydalanuvchi private akkauntga ega');
+    }
+  }
+
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+
+  return this.prisma.habit.findMany({
+    where: {
+      userId: targetUserId,
+      isPublic: true,
+      ...(query.frequency && { frequency: query.frequency }),
+      ...(query.categoryId && { categoryId: query.categoryId }),
+    },
+    include: {
+      logs: {
+        where: { date: { gte: today } },
+        take: 1,
+      },
+      _count: {
+        select: { reactions: true, comments: true },
+      },
+      category: {
+        select: { id: true, name: true, icon: true, color: true },
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+}
 }
