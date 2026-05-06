@@ -15,9 +15,6 @@ export class FollowsService {
     private readonly notifications: NotificationsService,
   ) {}
 
-  // ─────────────────────────────────────────
-  // FOLLOW
-  // ─────────────────────────────────────────
   async follow(followerId: string, followingId: string) {
     if (followerId === followingId) {
       throw new BadRequestException('O\'zingizni follow qila olmaysiz');
@@ -53,8 +50,6 @@ export class FollowsService {
       data: { followerId, followingId, status },
     });
 
-    // Faqat public account da notification ketadi
-    // Private da PENDING — accept qilinganda notification ketadi
     if (status === 'ACCEPTED') {
       await this.notifications.notifyFollow(followerId, followingId);
     }
@@ -67,9 +62,6 @@ export class FollowsService {
     };
   }
 
-  // ─────────────────────────────────────────
-  // UNFOLLOW
-  // ─────────────────────────────────────────
   async unfollow(followerId: string, followingId: string) {
     const follow = await this.prisma.follow.findUnique({
       where: {
@@ -90,9 +82,6 @@ export class FollowsService {
     return { message: 'Unfollow muvaffaqiyatli' };
   }
 
-  // ─────────────────────────────────────────
-  // ACCEPT / REJECT REQUEST (faqat following tomonidan)
-  // ─────────────────────────────────────────
     async acceptRequest(currentUserId: string, followerId: string) {
     const follow = await this.prisma.follow.findUnique({
       where: {
@@ -121,7 +110,6 @@ export class FollowsService {
       data: { status: 'ACCEPTED' },
     });
 
-    // Accept qilinganda notification ketadi
     await this.notifications.notifyFollow(followerId, currentUserId);
 
     return updated;
@@ -157,9 +145,6 @@ export class FollowsService {
       return { message: 'So\'rov rad etildi' };
     }
 
-  // ─────────────────────────────────────────
-  // PENDING REQUESTS (menga kelgan so'rovlar)
-  // ─────────────────────────────────────────
   async getPendingRequests(currentUserId: string, query: FollowersQueryDto) {
     const { page = 1, limit = 20 } = query;
     const skip = (page - 1) * limit;
@@ -198,9 +183,6 @@ export class FollowsService {
     };
   }
 
-  // ─────────────────────────────────────────
-  // GET FOLLOWERS
-  // ─────────────────────────────────────────
   async getFollowers(currentUserId: string, targetUserId: string, query: FollowersQueryDto) {
     const targetUser = await this.prisma.user.findUnique({
       where: { id: targetUserId },
@@ -253,9 +235,6 @@ export class FollowsService {
     };
   }
 
-  // ─────────────────────────────────────────
-  // GET FOLLOWING
-  // ─────────────────────────────────────────
   async getFollowing(currentUserId: string, targetUserId: string, query: FollowersQueryDto) {
     const targetUser = await this.prisma.user.findUnique({
       where: { id: targetUserId },
