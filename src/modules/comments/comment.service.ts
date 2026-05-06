@@ -16,9 +16,6 @@ export class CommentsService {
     private readonly notifications: NotificationsService,
   ) {}
 
-  // ─────────────────────────────────────────
-  // CREATE
-  // ─────────────────────────────────────────
   async create(userId: string, habitId: string, dto: CreateCommentDto) {
     const habit = await this.prisma.habit.findUnique({
       where: { id: habitId },
@@ -29,7 +26,6 @@ export class CommentsService {
       throw new NotFoundException('Habit topilmadi');
     }
 
-    // Private habit — faqat egasi comment qo'sha oladi
     if (!habit.isPublic && habit.userId !== userId) {
       throw new ForbiddenException('Bu habitga ruxsat yo\'q');
     }
@@ -49,15 +45,11 @@ export class CommentsService {
       },
     });
 
-    // Notification trigger
     await this.notifications.notifyComment(userId, habitId, habit.userId);
 
     return comment;
   }
 
-  // ─────────────────────────────────────────
-  // GET ALL (habit commentlari)
-  // ─────────────────────────────────────────
   async findAll(userId: string, habitId: string, query: CommentQueryDto) {
     const habit = await this.prisma.habit.findUnique({
       where: { id: habitId },
@@ -109,9 +101,6 @@ export class CommentsService {
     };
   }
 
-  // ─────────────────────────────────────────
-  // UPDATE
-  // ─────────────────────────────────────────
   async update(userId: string, commentId: string, dto: UpdateCommentDto) {
     const comment = await this.prisma.comment.findUnique({
       where: { id: commentId },
@@ -144,9 +133,6 @@ export class CommentsService {
     return updated;
   }
 
-  // ─────────────────────────────────────────
-  // DELETE
-  // ─────────────────────────────────────────
   async remove(userId: string, commentId: string) {
     const comment = await this.prisma.comment.findUnique({
       where: { id: commentId },
@@ -159,7 +145,6 @@ export class CommentsService {
       throw new NotFoundException('Izoh topilmadi');
     }
 
-    // O'z commenti yoki habit egasi o'chira oladi
     if (comment.userId !== userId && comment.habit.userId !== userId) {
       throw new ForbiddenException('Bu izohni o\'chirish huquqingiz yo\'q');
     }
