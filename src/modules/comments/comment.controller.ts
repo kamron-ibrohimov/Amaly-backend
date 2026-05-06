@@ -24,7 +24,6 @@ import { UpdateCommentDto } from './dto/update-comment.dto';
 export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
 
-  // POST /habits/:habitId/comments
   @Post('habits/:habitId/comments')
   @ApiOperation({ summary: 'Comment qo\'shish' })
   create(
@@ -35,7 +34,6 @@ export class CommentsController {
     return this.commentsService.create(userId, habitId, dto);
   }
 
-  // GET /habits/:habitId/comments
   @Get('habits/:habitId/comments')
   @ApiOperation({ summary: 'Habit commentlari' })
   findAll(
@@ -46,7 +44,6 @@ export class CommentsController {
     return this.commentsService.findAll(userId, habitId, query);
   }
 
-  // PATCH /comments/:id
   @Patch('comments/:id')
   @ApiOperation({ summary: 'Commentni tahrirlash' })
   update(
@@ -57,7 +54,6 @@ export class CommentsController {
     return this.commentsService.update(userId, commentId, dto);
   }
 
-  // DELETE /comments/:id
   @Delete('comments/:id')
   @ApiOperation({ summary: 'Commentni o\'chirish' })
   remove(
