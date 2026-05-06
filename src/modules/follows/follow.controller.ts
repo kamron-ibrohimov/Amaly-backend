@@ -20,7 +20,6 @@ import { FollowsService } from './follow.service';
 export class FollowsController {
   constructor(private readonly followsService: FollowsService) {}
 
-  // POST /follows/:userId
   @Post(':userId')
   @ApiOperation({ summary: 'Follow qilish' })
   follow(
@@ -30,7 +29,6 @@ export class FollowsController {
     return this.followsService.follow(currentUserId, targetUserId);
   }
 
-  // DELETE /follows/:userId
   @Delete(':userId')
   @ApiOperation({ summary: 'Unfollow qilish' })
   unfollow(
@@ -40,7 +38,6 @@ export class FollowsController {
     return this.followsService.unfollow(currentUserId, targetUserId);
   }
 
-  // POST /follows/requests/:followerId/accept
   @Post('requests/:followerId/accept')
   @ApiOperation({ summary: 'Follow so\'rovini qabul qilish' })
   acceptRequest(
@@ -50,7 +47,6 @@ export class FollowsController {
     return this.followsService.acceptRequest(currentUserId, followerId);
   }
 
-  // POST /follows/requests/:followerId/reject
   @Post('requests/:followerId/reject')
   @ApiOperation({ summary: 'Follow so\'rovini rad etish' })
   rejectRequest(
@@ -60,7 +56,6 @@ export class FollowsController {
     return this.followsService.rejectRequest(currentUserId, followerId);
   }
 
-  // GET /follows/requests/pending
   @Get('requests/pending')
   @ApiOperation({ summary: 'Kelib tushgan follow so\'rovlar' })
   getPendingRequests(
@@ -70,7 +65,6 @@ export class FollowsController {
     return this.followsService.getPendingRequests(currentUserId, query);
   }
 
-  // GET /follows/:userId/followers
   @Get(':userId/followers')
   @ApiOperation({ summary: 'Followers ro\'yxati' })
   getFollowers(
@@ -81,7 +75,6 @@ export class FollowsController {
     return this.followsService.getFollowers(currentUserId, targetUserId, query);
   }
 
-  // GET /follows/:userId/following
   @Get(':userId/following')
   @ApiOperation({ summary: 'Following ro\'yxati' })
   getFollowing(
