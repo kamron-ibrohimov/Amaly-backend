@@ -16,9 +16,6 @@ import { PublicHabitQueryDto } from './dto/public-habit-query.dto';
 export class HabitsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // ─────────────────────────────────────────
-  // CREATE
-  // ─────────────────────────────────────────
   async create(userId: string, dto: CreateHabitDto): Promise<HabitResponseDto> {
     const habit = await this.prisma.habit.create({
       data: {
@@ -30,9 +27,6 @@ export class HabitsService {
     return habit;
   }
 
-  // ─────────────────────────────────────────
-  // GET ALL (o'z habitlari)
-  // ─────────────────────────────────────────
   async findAll(userId: string, query: HabitQueryDto): Promise<PaginatedResult<HabitResponseDto>> {
     const {
       page = 1,
@@ -85,9 +79,6 @@ export class HabitsService {
     };
   }
 
-  // ─────────────────────────────────────────
-  // GET ONE
-  // ─────────────────────────────────────────
   async findOne(userId: string, habitId: string): Promise<HabitResponseDto> {
     const habit = await this.prisma.habit.findUnique({
       where: { id: habitId },
@@ -104,9 +95,6 @@ export class HabitsService {
     return habit;
   }
 
-  // ─────────────────────────────────────────
-  // UPDATE
-  // ─────────────────────────────────────────
   async update(userId: string, habitId: string, dto: UpdateHabitDto): Promise<HabitResponseDto> {
     await this.checkOwnership(userId, habitId);
 
@@ -118,9 +106,6 @@ export class HabitsService {
     return updated;
   }
 
-  // ─────────────────────────────────────────
-  // DELETE
-  // ─────────────────────────────────────────
   async remove(userId: string, habitId: string): Promise<{ message: string }> {
     await this.checkOwnership(userId, habitId);
 
@@ -131,9 +116,6 @@ export class HabitsService {
     return { message: 'Habit muvaffaqiyatli o\'chirildi' };
   }
 
-  // ─────────────────────────────────────────
-  // LOG HABIT
-  // ─────────────────────────────────────────
   async logHabit(userId: string, habitId: string, dto: LogHabitDto) {
     await this.checkOwnership(userId, habitId);
 
@@ -159,9 +141,6 @@ export class HabitsService {
     return log;
   }
 
-  // ─────────────────────────────────────────
-  // GET LOGS
-  // ─────────────────────────────────────────
   async getLogs(userId: string, habitId: string) {
     await this.checkOwnership(userId, habitId);
 
@@ -173,9 +152,6 @@ export class HabitsService {
     return logs;
   }
 
-  // ─────────────────────────────────────────
-  // GET STREAK
-  // ─────────────────────────────────────────
   async getStreak(userId: string, habitId: string) {
     await this.checkOwnership(userId, habitId);
 
@@ -204,7 +180,6 @@ export class HabitsService {
       }
     }
 
-    // Longest streak hisoblash
     let streak = 0;
     for (let i = 0; i < logs.length; i++) {
       if (i === 0) {
@@ -230,9 +205,6 @@ export class HabitsService {
     };
   }
 
-  // ─────────────────────────────────────────
-  // PRIVATE HELPERS
-  // ─────────────────────────────────────────
   private async checkOwnership(userId: string, habitId: string): Promise<void> {
     const habit = await this.prisma.habit.findUnique({
       where: { id: habitId },
@@ -252,7 +224,6 @@ async getPublicHabits(
   targetUserId: string,
   query: PublicHabitQueryDto,
 ) {
-  // Target user mavjudmi?
   const targetUser = await this.prisma.user.findUnique({
     where: { id: targetUserId },
     select: { id: true, isPublic: true },
@@ -260,7 +231,6 @@ async getPublicHabits(
 
   if (!targetUser) throw new NotFoundException('Foydalanuvchi topilmadi');
 
-  // Private akkaunt bo'lsa — faqat ACCEPTED follower ko'ra oladi
   if (!targetUser.isPublic) {
     const follow = await this.prisma.follow.findUnique({
       where: {
