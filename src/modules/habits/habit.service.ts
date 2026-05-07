@@ -247,9 +247,6 @@ export class HabitsService {
     }
   }
 
-  // ─────────────────────────────────────────
-// GET USER PUBLIC HABITS (boshqa foydalanuvchi)
-// ─────────────────────────────────────────
 async getPublicHabits(
   currentUserId: string,
   targetUserId: string,

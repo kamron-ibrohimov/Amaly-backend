@@ -4,7 +4,7 @@ import { FollowsController } from './follow.controller';
 import { FollowsService } from './follow.service';
 
 @Module({
-  imports: [NotificationsModule], // ← qo'sh
+  imports: [NotificationsModule],
   controllers: [FollowsController],
   providers: [FollowsService],
   exports: [FollowsService],
