@@ -11,9 +11,6 @@ export class NotificationsService {
     private readonly firebase: FirebaseService,
   ) {}
 
-  // ─────────────────────────────────────────
-  // INTERNAL: Notification yaratish + FCM
-  // ─────────────────────────────────────────
   async createNotification(params: {
     userId: string;
     type: NotificationType;
@@ -21,7 +18,6 @@ export class NotificationsService {
     body: string;
     data?: Record<string, string>;
   }) {
-    // 1. DB ga saqlash
     await this.prisma.notification.create({
       data: {
         userId: params.userId,
@@ -32,7 +28,6 @@ export class NotificationsService {
       },
     });
 
-    // 2. FCM — device tokenlarni olish
     const deviceTokens = await this.prisma.deviceToken.findMany({
       where: { userId: params.userId },
       select: { token: true },
@@ -45,9 +40,6 @@ export class NotificationsService {
     }
   }
 
-  // ─────────────────────────────────────────
-  // TRIGGERS
-  // ─────────────────────────────────────────
   async notifyFollow(followerId: string, followingId: string) {
     const follower = await this.prisma.user.findUnique({
       where: { id: followerId },
@@ -68,7 +60,7 @@ export class NotificationsService {
   }
 
   async notifyComment(commenterId: string, habitId: string, habitOwnerId: string) {
-    if (commenterId === habitOwnerId) return; // o'z habitiga comment qo'ysa notify yo'q
+    if (commenterId === habitOwnerId) return; 
 
     const commenter = await this.prisma.user.findUnique({
       where: { id: commenterId },
@@ -109,9 +101,6 @@ export class NotificationsService {
     });
   }
 
-  // ─────────────────────────────────────────
-  // GET ALL (pagination)
-  // ─────────────────────────────────────────
   async getAll(userId: string, query: NotificationQueryDto) {
     const { page = 1, limit = 20, unreadOnly } = query;
     const skip = (page - 1) * limit;
@@ -144,9 +133,6 @@ export class NotificationsService {
     };
   }
 
-  // ─────────────────────────────────────────
-  // MARK AS READ
-  // ─────────────────────────────────────────
   async markAsRead(userId: string, notificationId: string) {
     await this.prisma.notification.updateMany({
       where: { id: notificationId, userId },
@@ -156,9 +142,6 @@ export class NotificationsService {
     return { message: 'O\'qildi deb belgilandi' };
   }
 
-  // ─────────────────────────────────────────
-  // MARK ALL AS READ
-  // ─────────────────────────────────────────
   async markAllAsRead(userId: string) {
     await this.prisma.notification.updateMany({
       where: { userId, isRead: false },
@@ -168,9 +151,6 @@ export class NotificationsService {
     return { message: 'Barcha bildirishnomalar o\'qildi' };
   }
 
-  // ─────────────────────────────────────────
-  // UNREAD COUNT
-  // ─────────────────────────────────────────
   async getUnreadCount(userId: string) {
     const count = await this.prisma.notification.count({
       where: { userId, isRead: false },
@@ -179,9 +159,6 @@ export class NotificationsService {
     return { unreadCount: count };
   }
 
-  // ─────────────────────────────────────────
-  // DELETE
-  // ─────────────────────────────────────────
   async remove(userId: string, notificationId: string) {
     await this.prisma.notification.deleteMany({
       where: { id: notificationId, userId },
