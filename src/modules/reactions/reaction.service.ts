@@ -72,9 +72,6 @@ export class ReactionsService {
     return { message: 'Reaksiya olib tashlandi' };
   }
 
-  // ─────────────────────────────────────────
-  // GET ALL (grouped by emoji)
-  // ─────────────────────────────────────────
   async findAll(userId: string, habitId: string) {
     const habit = await this.prisma.habit.findUnique({
       where: { id: habitId },
@@ -104,7 +101,6 @@ export class ReactionsService {
       },
     });
 
-    // Emoji bo'yicha guruhlash
     const grouped = reactions.reduce(
       (acc, reaction) => {
         const key = reaction.emoji;
@@ -118,7 +114,6 @@ export class ReactionsService {
       {} as Record<string, { emoji: string; count: number; users: any[] }>,
     );
 
-    // Joriy user reaksiyasi
     const myReaction = reactions.find((r) => r.userId === userId);
 
     return {
