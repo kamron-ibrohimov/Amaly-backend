@@ -20,7 +20,6 @@ import { ReactionsService } from './reaction.service';
 export class ReactionsController {
   constructor(private readonly reactionsService: ReactionsService) {}
 
-  // POST /habits/:habitId/reactions
   @Post()
   @ApiOperation({ summary: 'Reaksiya qo\'yish yoki almashtirish' })
   react(
