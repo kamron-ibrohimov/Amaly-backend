@@ -30,7 +30,6 @@ export class ReactionsController {
     return this.reactionsService.react(userId, habitId, dto);
   }
 
-  // DELETE /habits/:habitId/reactions
   @Delete()
   @ApiOperation({ summary: 'Reaksiyani olib tashlash' })
   remove(
