@@ -20,7 +20,6 @@ import { ReactionsService } from './reaction.service';
 export class ReactionsController {
   constructor(private readonly reactionsService: ReactionsService) {}
 
-  // POST /habits/:habitId/reactions
   @Post()
   @ApiOperation({ summary: 'Reaksiya qo\'yish yoki almashtirish' })
   react(
@@ -31,7 +30,6 @@ export class ReactionsController {
     return this.reactionsService.react(userId, habitId, dto);
   }
 
-  // DELETE /habits/:habitId/reactions
   @Delete()
   @ApiOperation({ summary: 'Reaksiyani olib tashlash' })
   remove(
