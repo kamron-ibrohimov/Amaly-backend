@@ -39,7 +39,6 @@ export class ReactionsController {
     return this.reactionsService.remove(userId, habitId);
   }
 
-  // GET /habits/:habitId/reactions
   @Get()
   @ApiOperation({ summary: 'Reaksiyalar ro\'yxati' })
   findAll(
