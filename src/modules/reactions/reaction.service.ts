@@ -28,7 +28,6 @@ export class ReactionsService {
       throw new ForbiddenException('Bu habitga ruxsat yo\'q');
     }
 
-    // upsert — bor bo'lsa emoji almashtiradi, yo'q bo'lsa yaratadi
     const reaction = await this.prisma.reaction.upsert({
       where: {
         userId_habitId: { userId, habitId },
@@ -48,15 +47,11 @@ export class ReactionsService {
       },
     });
 
-    // Notification — faqat yangi reaksiyada (update da emas)
     await this.notifications.notifyReaction(userId, habitId, habit.userId);
 
     return reaction;
   }
 
-  // ─────────────────────────────────────────
-  // REMOVE
-  // ─────────────────────────────────────────
   async remove(userId: string, habitId: string) {
     const reaction = await this.prisma.reaction.findUnique({
       where: {
