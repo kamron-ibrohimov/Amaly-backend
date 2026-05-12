@@ -14,9 +14,6 @@ export class ReactionsService {
     private readonly notifications: NotificationsService,
   ) {}
 
-  // ─────────────────────────────────────────
-  // REACT (qo'yish yoki almashtirish)
-  // ─────────────────────────────────────────
   async react(userId: string, habitId: string, dto: CreateReactionDto) {
     const habit = await this.prisma.habit.findUnique({
       where: { id: habitId },
