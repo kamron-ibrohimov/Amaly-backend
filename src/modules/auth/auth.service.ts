@@ -38,11 +38,13 @@ export class AuthService {
       throw new ConflictException('Bu email allaqachon ro\'yxatdan o\'tgan');
     }
 
-    const existingUsername = await this.prisma.user.findUnique({
-      where: { username: dto.username },
-    });
-    if (existingUsername) {
-      throw new ConflictException('Bu username band');
+    if (dto.username) {
+      const existingUsername = await this.prisma.user.findUnique({
+        where: { username: dto.username },
+      });
+      if (existingUsername) {
+        throw new ConflictException('Bu username band');
+      }
     }
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);

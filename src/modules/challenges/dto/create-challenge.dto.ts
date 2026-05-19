@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsBoolean, IsDateString, MinLength, MaxLength } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsDateString, MinLength, MaxLength, Matches } from 'class-validator';
 
 export class CreateChallengeDto {
   @IsString()
@@ -11,9 +11,20 @@ export class CreateChallengeDto {
   @MaxLength(500)
   description?: string;
 
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  icon?: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/, { message: 'color must be a valid hex color' })
+  color?: string;
+
   @IsDateString()
   startDate!: string;
 
+  @IsOptional()
   @IsDateString()
   endDate?: string;
 

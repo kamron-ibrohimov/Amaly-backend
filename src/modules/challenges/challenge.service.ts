@@ -30,6 +30,8 @@ export class ChallengesService {
       data: {
         title: dto.title,
         description: dto.description ?? null,
+        icon: dto.icon ?? null,
+        color: dto.color ?? null,
         isPublic: dto.isPublic ?? true,
         startDate,
         endDate,
@@ -41,26 +43,10 @@ export class ChallengesService {
           },
         },
       },
-      include: {
-        creator: {
-          select: {
-            id: true,
-            username: true,
-            firstName: true,
-            lastName: true,
-            avatar: true,
-          },
-        },
-        _count: {
-          select: {
-            users: true,
-            habits: true,
-          },
-        },
-      },
+      include: this.challengeInclude(),
     });
 
-    return challenge;
+    return this.formatChallenge(challenge, userId);
   }
 
   async findAll(userId: string, query: ChallengeQueryDto) {
@@ -79,18 +65,13 @@ export class ChallengesService {
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
-        include: {
-          creator: {
-            select: { id: true, username: true, firstName: true, lastName: true, avatar: true },
-          },
-          _count: { select: { users: true, habits: true } },
-        },
+        include: this.challengeInclude(),
       }),
       this.prisma.challenge.count({ where }),
     ]);
 
     return {
-      data: challenges,
+      data: challenges.map((c) => this.formatChallenge(c, userId)),
       meta: {
         total,
         page,
@@ -106,9 +87,7 @@ export class ChallengesService {
     const challenge = await this.prisma.challenge.findUnique({
       where: { id: challengeId },
       include: {
-        creator: {
-          select: { id: true, username: true, firstName: true, lastName: true, avatar: true },
-        },
+        ...this.challengeInclude(true),
         habits: {
           include: {
             habit: {
@@ -116,14 +95,6 @@ export class ChallengesService {
             },
           },
         },
-        users: {
-          include: {
-            user: {
-              select: { id: true, username: true, firstName: true, lastName: true, avatar: true },
-            },
-          },
-        },
-        _count: { select: { users: true, habits: true } },
       },
     });
 
@@ -131,44 +102,43 @@ export class ChallengesService {
       throw new NotFoundException('Challenge topilmadi');
     }
 
-    const isMember = challenge.users.some((u) => u.userId === userId);
+    const isMember = (challenge.users as any[]).some(
+      (u) => u.userId === userId && u.status !== 'LEFT',
+    );
 
     if (!challenge.isPublic && !isMember) {
       throw new ForbiddenException('Bu challengega ruxsat yo\'q');
     }
 
-    return challenge;
+    return this.formatChallenge(challenge, userId);
   }
 
   async update(userId: string, challengeId: string, dto: UpdateChallengeDto) {
-  await this.checkCreator(userId, challengeId);
+    await this.checkCreator(userId, challengeId);
 
-  const startDate = dto.startDate ? new Date(dto.startDate) : undefined;
-  const endDate = dto.endDate ? new Date(dto.endDate) : undefined;
+    const startDate = dto.startDate ? new Date(dto.startDate) : undefined;
+    const endDate = dto.endDate ? new Date(dto.endDate) : undefined;
 
-  if (startDate && endDate && startDate >= endDate) {
-    throw new BadRequestException('startDate endDate dan oldin bo\'lishi kerak');
-  }
+    if (startDate && endDate && startDate >= endDate) {
+      throw new BadRequestException('startDate endDate dan oldin bo\'lishi kerak');
+    }
 
-  const updated = await this.prisma.challenge.update({
-    where: { id: challengeId },
-    data: {
-      ...(dto.title && { title: dto.title }),
-      ...(dto.description !== undefined && { description: dto.description }),
-      ...(dto.isPublic !== undefined && { isPublic: dto.isPublic }),
-      ...(startDate && { startDate }),
-      ...(endDate && { endDate }),
-    },
-    include: {
-      creator: {
-        select: { id: true, username: true, firstName: true, lastName: true, avatar: true },
+    const updated = await this.prisma.challenge.update({
+      where: { id: challengeId },
+      data: {
+        ...(dto.title && { title: dto.title }),
+        ...(dto.description !== undefined && { description: dto.description }),
+        ...(dto.icon !== undefined && { icon: dto.icon }),
+        ...(dto.color !== undefined && { color: dto.color }),
+        ...(dto.isPublic !== undefined && { isPublic: dto.isPublic }),
+        ...(startDate && { startDate }),
+        ...(endDate && { endDate }),
       },
-      _count: { select: { users: true, habits: true } },
-    },
-  });
+      include: this.challengeInclude(),
+    });
 
-  return updated;
-}
+    return this.formatChallenge(updated, userId);
+  }
 
   async remove(userId: string, challengeId: string) {
     await this.checkCreator(userId, challengeId);
@@ -374,5 +344,72 @@ export class ChallengesService {
     if (challenge.creatorId !== userId) {
       throw new ForbiddenException('Faqat challenge yaratuvchisi bu amalni bajarishi mumkin');
     }
+  }
+
+  private challengeInclude(allUsers = false) {
+    return {
+      creator: {
+        select: { id: true, username: true, firstName: true, lastName: true, avatar: true },
+      },
+      users: {
+        ...(!allUsers && { where: { status: 'ACTIVE' as const } }),
+        include: {
+          user: {
+            select: { id: true, username: true, firstName: true, lastName: true, avatar: true },
+          },
+        },
+        orderBy: { joinedAt: 'asc' as const },
+      },
+      _count: { select: { users: true, habits: true } },
+    };
+  }
+
+  private formatChallenge(challenge: any, currentUserId: string) {
+    const now = new Date();
+    const startDate = new Date(challenge.startDate);
+    const endDate = challenge.endDate ? new Date(challenge.endDate) : null;
+
+    const totalDays = endDate
+      ? Math.max(1, Math.round((endDate.getTime() - startDate.getTime()) / 86_400_000))
+      : null;
+
+    const dayN = Math.max(0, Math.round((now.getTime() - startDate.getTime()) / 86_400_000)) + 1;
+
+    const daysLeft = endDate
+      ? Math.max(0, Math.ceil((endDate.getTime() - now.getTime()) / 86_400_000))
+      : null;
+
+    const progress = totalDays
+      ? Math.min(100, Math.round((Math.min(dayN, totalDays) / totalDays) * 100))
+      : null;
+
+    const allUsers: any[] = challenge.users ?? [];
+    const activeUsers = allUsers.filter((u) => !u.status || u.status === 'ACTIVE');
+
+    const isMember = allUsers.some(
+      (u) => u.userId === currentUserId && (!u.status || u.status === 'ACTIVE'),
+    );
+    const displayStatus = isMember ? 'ACTIVE' : 'DISCOVER';
+
+    const memberColors = ['#C76E48', '#5E8FB8', '#739E6A', '#7A4E6F', '#4F5BD5'];
+    const members = activeUsers.map((u: any, i: number) => ({
+      id: u.user.id,
+      name: u.user.firstName || u.user.username,
+      username: u.user.username,
+      avatar: u.user.avatar,
+      color: memberColors[i % memberColors.length],
+    }));
+
+    return {
+      ...challenge,
+      displayStatus,
+      isMember,
+      participants: challenge._count?.users ?? members.length,
+      members,
+      daysLeft,
+      dayN: Math.min(dayN, totalDays ?? dayN),
+      total: totalDays,
+      progress,
+    };
   }
 }
